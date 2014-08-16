@@ -411,7 +411,7 @@ window.update = ->
 ```
 
 * Finished! You can play this game here:
-  * [CHARGE RUSH](http://abagames.sakura.ne.jp/flash/cr/) 
+  * [CHARGE RUSH](http://abagames.sakura.ne.jp/html5/cr/) 
 
 License
 ----------

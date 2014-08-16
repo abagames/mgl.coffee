@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<title>MGL.COFFEE</title>
+	<!--[if lt IE 9]>
+	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<style type="text/css">
+	<!--
+body {
+	background-color: #edc;
+	color: #000;
+	width: 100%; max-width: 480px;
+	margin: 0 auto 0 auto;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+canvas {
+	width: 100%;
+	background-color: #000;
+}
+	-->
+	</style>
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<script src="./libs/jquery-2.1.1.min.js"></script>
+	<script src="./libs/audio.js"></script>
+	<script src="./libs/jsfx.js"></script>
+	<script src="./libs/jsfxlib.js"></script>
+	<script src="./libs/webaudiox.jsfx.js"></script>
+	<script src="./libs/LZWEncoder.js"></script>
+	<script src="./libs/NeuQuant.js"></script>
+	<script src="./libs/GIFEncoder.js"></script>
+	<script src="./libs/b64.js"></script>
+	<script src="./libs/mgl.js"></script>
+	<script src="./libs/coffee-script.js"></script>
+</head>
+<body>
+<div class="main">
+<article>
+	<section>
+		<div style="width:100%;max-width:480px" id="displayDiv">
+			<canvas id="display"></canvas>
+		</div>
+	</section>
+</article>
+</div>
+<script type="text/coffeescript">
+Config.title = ['MGL.', 'COFFEE']
+#Config.isDebuggingMode = true
+
+window.initialize = ->
+window.begin = ->
+window.update = ->
+</script>
+</body>
+</html>

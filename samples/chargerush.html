@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<title>CHARGE RUSH</title>
+	<!--[if lt IE 9]>
+	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<style type="text/css">
+	<!--
+body {
+	background-color: #edc;
+	color: #000;
+	width: 100%; max-width: 480px;
+	margin: 0 auto 0 auto;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+canvas {
+	width: 100%;
+	background-color: #000;
+}
+	-->
+	</style>
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<script src="../libs/jquery-2.1.1.min.js"></script>
+	<script src="../libs/audio.js"></script>
+	<script src="../libs/jsfx.js"></script>
+	<script src="../libs/jsfxlib.js"></script>
+	<script src="../libs/webaudiox.jsfx.js"></script>
+	<script src="../libs/LZWEncoder.js"></script>
+	<script src="../libs/NeuQuant.js"></script>
+	<script src="../libs/GIFEncoder.js"></script>
+	<script src="../libs/b64.js"></script>
+	<script src="../libs/mgl.js"></script>
+	<script src="../libs/coffee-script.js"></script>
+</head>
+<body>
+<div class="main">
+<article>
+	<section>
+		<div style="width:100%;max-width:480px" id="displayDiv">
+			<canvas id="display"></canvas>
+		</div>
+	</section>
+</article>
+</div>
+<script type="text/coffeescript">
+Config.title = ['CHARGE', 'RUSH']
+#Config.isDebuggingMode = true
+
+# 'window.initialize' function is called only once when
+# the window is loaded
+window.initialize = ->
+	# Set the 'Sound' class random seed for auto generated sounds
+	Sound.setSeed 1234
+	@drums = []
+	# 'setDrum' and 'setDrumPattern' functions create
+	# a random drum voice and pattern when no arg is provided
+	@drums.push Game.newSound().setDrum().setDrumPattern() for i in [1..4]
+# 'window.begin' function is called once when the game starts
+window.begin = ->
+	drum.playPattern() for drum in @drums
+	# Add the ship when the game is beginning
+	new Ship if Game.isBeginning
+	Game.stage = 0
+	# 'Game.newFiber' function creates a fiber assigned to this game
+	Game.newFiber()
+		.doOnce ->
+			Game.stage++
+			# 'Game.getDifficulty' function returns the number
+			# represents the difficulty increasing with the time passed
+			#  1 (game starts) -> 2 (about 3 minutes passed) ->
+			ev = (0.01.rr 0.02) * Game.getDifficulty()
+			for y in [1..9]
+				new Enemy -y * 0.1, ev
+		# repeat until '@next' function is called
+		.doRepeat ->
+			# 'Actor.s' function returns all actors of
+			# the class specifiled at the argument
+			@next() if (Actor.s Enemy).length == 0
+		new Star for i in [1..30]
+# 'window.update' function is called every frame
+window.update = ->
+	# 'Actor.scroll' args:
+	#   target class(es), velocityX, velocityY, minX, maxX, minY, maxY
+	#  y becomes minY when y > maxY and vice versa
+	Actor.scroll Star, 0, 0.002, 0, 0, 0, 1
+	# 'Game.ticks' means a frame count from a beginning of a game
+	if Game.isBeginning && Game.ticks == 0
+		Game.newText '[MOUSE] MOVE'
+			.setXy 0.1, 0.1
+			.setDuration 250
+			.alignLeft()
+			# if 'showOnce' function is called, this text is
+			# shown only once after the window is loaded
+			.showOnce()
+
+# characters in the game is called actor
+# class of actor should be extended from 'Actor' class
+class Ship extends Actor
+	initialize: ->
+		# since default volume value of the sound is 1
+		# this sound effect becomes louder
+		Ship.destroySe = @newSound().setVolume(3).setDrum()
+	# 'begin' function is called once when the actor is created
+	begin: ->
+		# 'addRect' to '@drawing' for creating the actor's shape
+		@drawing
+			.setColor Color.white
+			# 'addRect' args: width, height, offsetX, offsetY
+			.addRect 0.02, 0.05, 0, -0.01
+			.setColor Color.red
+			.addRect 0.02, 0.04, -0.02, 0
+			.addRect 0.02, 0.04, 0.02, 0
+		# '@newFiber' function create 'Fiber' assigned to this actor
+		@newFiber()
+			# 'doOnce' creating 'Shot' instance
+			.doOnce =>
+				new Shot @pos
+			# 'wait' 3 frames and back to 'doOnce' procedure
+			.wait 3
+	# 'update' function is called every frame
+	update: ->
+		# '@pos' represents the position of this actor
+		# 'Mouse.pos' is the position of the mouse cursor 
+		@pos.setValue Mouse.pos
+		@destroy() if @onCollision Bullet
+		@destroy() if @onCollision Enemy
+	destroy: ->
+		@newParticle()
+			.setColor Color.red
+			.setSize 0.1
+			.setNumber 20
+			.setSpeed 0.05
+		# 'playNow' function plays the sound without quantizing
+		Ship.destroySe.playNow()
+		@remove()
+		# back to the title screen when 'Game.end' function is called
+		Game.end()
+
+class Shot extends Actor
+	# arguments of 'begin' function are passed from
+	# the constructor of this actor
+	begin: (p) ->
+		@drawing
+			.setColor Color.red
+			.addRect 0.02, 0.03, -0.02, 0
+			.addRect 0.02, 0.03, 0.02, 0
+		@pos.setValue p
+		# set the velocity ('@vel') to the upper direction
+		@vel.y = -0.03
+		@addMuzzleFlash -0.02
+		@addMuzzleFlash 0.02
+	addMuzzleFlash: (offsetX) ->
+		@newParticle()
+			.setXy @pos.x + offsetX, @pos.y
+			.setColor Color.red
+			# set the number of particles emitted
+			.setNumber 3
+			# 'setWay' args:
+			#  center angle (degree, clockwise), scattering angle
+			.setWay 0, 30
+			.setSpeed 0.03
+			# set the duration until the particle disappears
+			.setDuration 3
+	update: ->
+		# remove this actor when the position isn't in the screen
+		#  the position of the screen:
+		#   upper-left (0, 0)----(1, 0) upper-right
+		#                   |    |
+		#   lower-left (0, 1)----(1, 1) lower-right
+		@remove() if !@pos.isIn
+		if Game.isBeginning && @onCollision Bullet
+			score = Game.stage
+			@newText "+#{score}"
+				.setVelocity 0, -0.03
+				.setDuration 10
+			Game.score += score
+
+class Enemy extends Actor
+	initialize: ->
+		Enemy.destroySe = @newSound().setDrum()
+	begin: (y, vy) ->
+		@drawing
+			.setColor Color.yellow
+			.addRect 0.03, 0.05, 0, 0.01
+			.addRect 0.02, 0.04, -0.03, 0
+			.addRect 0.02, 0.04, 0.03, 0
+		# 'A.rr B' creates a random number from A to B 
+		@pos.setXy (0.1.rr 0.9), y
+		@vel.y = vy
+		@newFiber()
+			.doOnce =>
+				new Bullet @pos
+			.wait 30 / Game.getDifficulty()
+	update: ->
+		# '@onCollision' function returns true when
+		# this actor collides actors of the specific class
+		#  args: specific class, function called with the colliding actor
+		if @onCollision Shot, ((shot) -> shot.remove())
+			# 'play' function plays the quantized sound
+			Enemy.destroySe.play()
+			# add score only when the game is beginning
+			if Game.isBeginning
+				score = Game.stage * 10
+				# '@newText' function show the text to the screen
+				@newText "+#{score}"
+					.setVelocity 0, -0.1
+					.setDuration 30
+				Game.score += score
+			@newParticle()
+				.setColor Color.yellow
+				.setNumber 5
+			@remove()
+		@remove() if @pos.y > 1
+
+class Bullet extends Actor
+	initialize: ->
+		Bullet.shotSe = @newSound().setDrum()
+	begin: (p) ->
+		@pos.setValue p
+		ship = (Actor.s Ship)[0]
+		# remove when the firing position is too close to the ship
+		if !ship? || !@pos.ii || (@pos.distanceTo ship.pos) < 0.3
+			@remove()
+			return
+		# if an actor has to rotate, use 'addRects' function that
+		# adds separated squares for a rectangle
+		@drawing
+			.addRects 0.04, 0.02
+			.addRects 0.02, 0.04
+		# get an angle to the ship
+		angle = @pos.wayTo ship.pos
+		speed = (0.005.rr 0.015) * Game.getDifficulty()
+		@vel.addWay angle, speed
+		@newParticle()
+			.setNumber 3
+			.setWay angle, 10
+			.setSpeed speed * 2
+			.setDuration 5
+		Bullet.shotSe.play()
+	update: ->
+		# rotate this actor
+		@way += 7
+		# the argument of 'isIn' function means a spacing value
+		# in this case 'isIn' returns true when -0.05 < x and y < 1.05
+		@remove() if !@pos.isIn 0.05
+
+class Star extends Actor
+	# 'initialize' function is called only once when
+	# the first actor is created
+	initialize: ->
+		# the actor has the lower display priority number is
+		# displayed below actors have the higher number
+		#  0 (particle) -> 1 (default number for an actor) -> 2 (text)
+		@setDisplayPriority 0.5
+	begin: ->
+		@drawing
+			# 'addRect' add a square when the second argument is skipped
+			.addRect 0.01
+		@pos.setXy (0.rr 1), (0.rr 1)
+</script>
+</body>
+</html>

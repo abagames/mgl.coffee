@@ -736,8 +736,8 @@ class Mouse
 		e.preventDefault()
 		@wasMoving = true
 		rect = e.target.getBoundingClientRect()
-		@p.x = (e.pageX - rect.left) / Display.size.x
-		@p.y = (e.pageY - rect.top) / Display.size.y
+		@p.x = ((e.pageX - rect.left) / Display.size.x).c 0, 1
+		@p.y = ((e.pageY - rect.top) / Display.size.y).c 0, 1
 	@onMouseDown: (e) =>
 		@ip = true
 		@onMouseMove e
@@ -749,8 +749,8 @@ class Mouse
 		@wasMoving = true
 		rect = e.target.getBoundingClientRect()
 		touch = e.touches[0]
-		@p.x = (touch.pageX - rect.left) / Display.size.x
-		@p.y = (touch.pageY - rect.top) / Display.size.y
+		@p.x = ((touch.pageX - rect.left) / Display.size.x).c 0, 1
+		@p.y = ((touch.pageY - rect.top) / Display.size.y).c 0, 1
 	@onTouchStart: (e) =>
 		@ip = true
 		@onTouchMove e

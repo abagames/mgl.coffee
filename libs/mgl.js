@@ -1593,8 +1593,8 @@ Mouse = (function() {
     e.preventDefault();
     Mouse.wasMoving = true;
     rect = e.target.getBoundingClientRect();
-    Mouse.p.x = (e.pageX - rect.left) / Display.size.x;
-    return Mouse.p.y = (e.pageY - rect.top) / Display.size.y;
+    Mouse.p.x = ((e.pageX - rect.left) / Display.size.x).c(0, 1);
+    return Mouse.p.y = ((e.pageY - rect.top) / Display.size.y).c(0, 1);
   };
 
   Mouse.onMouseDown = function(e) {
@@ -1613,8 +1613,8 @@ Mouse = (function() {
     Mouse.wasMoving = true;
     rect = e.target.getBoundingClientRect();
     touch = e.touches[0];
-    Mouse.p.x = (touch.pageX - rect.left) / Display.size.x;
-    return Mouse.p.y = (touch.pageY - rect.top) / Display.size.y;
+    Mouse.p.x = ((touch.pageX - rect.left) / Display.size.x).c(0, 1);
+    return Mouse.p.y = ((touch.pageY - rect.top) / Display.size.y).c(0, 1);
   };
 
   Mouse.onTouchStart = function(e) {

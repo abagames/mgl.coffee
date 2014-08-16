@@ -1,12 +1,18 @@
 MGL.COFFEE (Mini Game programming Library in CoffeeScript)
 ======================
-MGL.COFFEE is a mini game programming library written in CoffeeScript. MGL.COFFEE is useful for creating a simple HTML5 game in short term.
+MGL.COFFEE is a mini game programming library written in [CoffeeScript](http://coffeescript.org/). MGL.COFFEE is useful for creating a simple HTML5 game in short term.
 
 Using the [jsfx](https://github.com/egonelbre/jsfx) sound effect generator.
 
 Using the [jsgif](https://github.com/antimatter15/jsgif) animated gif encoder.
 
-### How to use
+### How to create
+
+* this game: [CHARGE RUSH](http://abagames.sakura.ne.jp/html5/cr/)
+
+* less than 1 hour, probably, perhaps.
+
+![cr_capture](http://abagames.sakura.ne.jp/html5/cr/cr_capture.gif)
 
 * Download the zip file and unzip.
 
@@ -410,8 +416,7 @@ window.update = ->
 			.showOnce()
 ```
 
-* Finished! You can play this game here:
-  * [CHARGE RUSH](http://abagames.sakura.ne.jp/html5/cr/) 
+* Finished!
 
 License
 ----------

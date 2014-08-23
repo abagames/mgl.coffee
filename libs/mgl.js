@@ -783,19 +783,21 @@ ActorGroup = (function() {
   };
 
   ActorGroup.prototype.update = function() {
-    var a, i, _i, _len, _ref;
-    _ref = this.s;
-    for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-      a = _ref[i];
+    var a, i;
+    i = 0;
+    while (true) {
       if (i >= this.s.length) {
         break;
       }
+      a = this.s[i];
       if (!a.isRemoving) {
         a.preUpdate();
         a.u();
       }
       if (a.isRemoving) {
-        this.s.splice(i--, 1);
+        this.s.splice(i, 1);
+      } else {
+        i++;
       }
     }
   };

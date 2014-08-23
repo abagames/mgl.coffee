@@ -343,13 +343,17 @@ class ActorGroup
 	clear: ->
 		@s = []
 	update: ->
-		for a, i in @s
+		i = 0
+		while true
 			break if i >= @s.length
+			a = @s[i]
 			if !a.isRemoving
 				a.preUpdate()
 				a.u()
 			if a.isRemoving
-				@s.splice i--, 1
+				@s.splice i, 1
+			else
+				i++
 		return
 
 # drawn character consists of rects

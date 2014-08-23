@@ -24,7 +24,7 @@ class Game
 	@fillRect: (args...) -> Display.fillRect args...
 	@fr: (args...) -> Display.fillRect args...
 	@getDifficulty: (args...) -> @df args...
-	@df: (r = 1) -> sqrt(@t * r * 0.0001) + 1
+	@df: (speed = 1, scale = 1) -> sqrt(@t * speed * 0.0001) * scale + 1
 	@newDrawing: -> @nd
 	@classGetter 'nd', -> new Drawing
 	@newFiber: -> @nf
@@ -359,28 +359,76 @@ class Drawing
 	c: (@color) -> @
 	addRect: (args...) -> @r args...
 	r: (width, height = 0, ox = 0, oy = 0) ->
+		@lastAdded =
+			type: 'rect'
+			color: @color
+			width: width
+			height: height
+			offsetX: ox
+			offsetY: oy
 		height = width if height == 0
 		@s.push new DrawingRect @color, width, height,
 			ox, oy, @hasCollision
 		@
 	addRects: (args...) -> @rs args...
-	rs: (width, height, ox = 0, oy = 0) ->
+	rs: (width, height, ox = 0, oy = 0, way = 0) ->
+		@lastAdded =
+			type: 'rects'
+			color: @color
+			width: width
+			height: height
+			offsetX: ox
+			offsetY: oy
+			way: way
+		w = way * PI / 180
 		if width > height
-			n = floor width / height
-			vox = height
-			voy = 0
-			ox -= height * (n - 1) / 2
+			w += PI / 2
+			tw = width
 			width = height
-		else
-			n = floor height / width
-			vox = 0
-			voy = width
-			oy -= width * (n - 1) / 2
-			height = width
+			height = tw
+		n = floor height / width
+		o = -width * (n - 1) / 2
+		vo = width
+		width *= 1.05
 		for i in [1..n]
-			@s.push new DrawingRect @color, width, height, ox, oy
-			ox += vox
-			oy += voy
+			@s.push new DrawingRect @color, width, width,
+				sin(w) * o + ox, cos(w) * o + oy, @hasCollision
+			o += vo
+		@
+	addRotate: (args...) -> @rt args...
+	rt: (angle, number = 1) ->
+		o = new Vector().xy @lastAdded.offsetX, @lastAdded.offsetY
+		w = @lastAdded.way
+		for i in [1..number]
+			o.rt angle
+			switch @lastAdded.type
+				when 'rect'
+					@r @lastAdded.width, @lastAdded.height, o.x, o.y
+				when 'rects'
+					w -= angle
+					@rs @lastAdded.width, @lastAdded.height, o.x, o.y, w
+		@
+	addMirrorX: -> @mx
+	@getter 'mx', ->
+		switch @lastAdded.type
+			when 'rect'
+				@r @lastAdded.width, @lastAdded.height,
+					-@lastAdded.offsetX, @lastAdded.offsetY
+			when 'rects'
+				@rs @lastAdded.width, @lastAdded.height,
+					-@lastAdded.offsetX, @lastAdded.offsetY,
+					-@lastAdded.way
+		@
+	addMirrorX: -> @my
+	@getter 'my', ->
+		switch @lastAdded.type
+			when 'rect'
+				@r @lastAdded.width, @lastAdded.height,
+					@lastAdded.offsetX, -@lastAdded.offsetY
+			when 'rects'
+				@rs @lastAdded.width, @lastAdded.height,
+					@lastAdded.offsetX, -@lastAdded.offsetY,
+					-@lastAdded.way
 		@
 	setPos: (args...) -> @p args...
 	p: (p) ->
@@ -592,7 +640,7 @@ class TextActor extends Actor
 			@p.s @v
 			@v.d @duration
 		Display.drawText @text, @p.x, @p.y, @xAlign, 0, @color, @scale
-		@r if @t >= @duration
+		@r if @t >= @duration - 1
 class Letter
 	@initialize: ->
 		@COUNT = 66
@@ -711,7 +759,7 @@ class ParticleActor extends Actor
 			@r
 			return
 		Display.fillRect @p.x, @p.y, @size, @size, @color
-		@r if @t >= @duration
+		@r if @t >= @duration - 1
 
 # mouse/touch position and event
 class Mouse
@@ -723,7 +771,7 @@ class Mouse
 
 	# private functions
 	@initialize: ->
-		@p = new Vector
+		@p = new Vector().n .5
 		@ip = @ipd = @wasPressing = @im = @wasMoving = false
 		@pressedDisabledCount = 0
 		Display.e.addEventListener 'mousedown', @onMouseDown

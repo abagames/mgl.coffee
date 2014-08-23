@@ -84,11 +84,14 @@ Game = (function() {
     return this.df.apply(this, args);
   };
 
-  Game.df = function(r) {
-    if (r == null) {
-      r = 1;
+  Game.df = function(speed, scale) {
+    if (speed == null) {
+      speed = 1;
     }
-    return sqrt(this.t * r * 0.0001) + 1;
+    if (scale == null) {
+      scale = 1;
+    }
+    return sqrt(this.t * speed * 0.0001) * scale + 1;
   };
 
   Game.newDrawing = function() {
@@ -829,6 +832,14 @@ Drawing = (function() {
     if (oy == null) {
       oy = 0;
     }
+    this.lastAdded = {
+      type: 'rect',
+      color: this.color,
+      width: width,
+      height: height,
+      offsetX: ox,
+      offsetY: oy
+    };
     if (height === 0) {
       height = width;
     }
@@ -842,34 +853,100 @@ Drawing = (function() {
     return this.rs.apply(this, args);
   };
 
-  Drawing.prototype.rs = function(width, height, ox, oy) {
-    var i, n, vox, voy, _i;
+  Drawing.prototype.rs = function(width, height, ox, oy, way) {
+    var i, n, o, tw, vo, w, _i;
     if (ox == null) {
       ox = 0;
     }
     if (oy == null) {
       oy = 0;
     }
-    if (width > height) {
-      n = floor(width / height);
-      vox = height;
-      voy = 0;
-      ox -= height * (n - 1) / 2;
-      width = height;
-    } else {
-      n = floor(height / width);
-      vox = 0;
-      voy = width;
-      oy -= width * (n - 1) / 2;
-      height = width;
+    if (way == null) {
+      way = 0;
     }
+    this.lastAdded = {
+      type: 'rects',
+      color: this.color,
+      width: width,
+      height: height,
+      offsetX: ox,
+      offsetY: oy,
+      way: way
+    };
+    w = way * PI / 180;
+    if (width > height) {
+      w += PI / 2;
+      tw = width;
+      width = height;
+      height = tw;
+    }
+    n = floor(height / width);
+    o = -width * (n - 1) / 2;
+    vo = width;
+    width *= 1.05;
     for (i = _i = 1; 1 <= n ? _i <= n : _i >= n; i = 1 <= n ? ++_i : --_i) {
-      this.s.push(new DrawingRect(this.color, width, height, ox, oy));
-      ox += vox;
-      oy += voy;
+      this.s.push(new DrawingRect(this.color, width, width, sin(w) * o + ox, cos(w) * o + oy, this.hasCollision));
+      o += vo;
     }
     return this;
   };
+
+  Drawing.prototype.addRotate = function() {
+    var args;
+    args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    return this.rt.apply(this, args);
+  };
+
+  Drawing.prototype.rt = function(angle, number) {
+    var i, o, w, _i;
+    if (number == null) {
+      number = 1;
+    }
+    o = new Vector().xy(this.lastAdded.offsetX, this.lastAdded.offsetY);
+    w = this.lastAdded.way;
+    for (i = _i = 1; 1 <= number ? _i <= number : _i >= number; i = 1 <= number ? ++_i : --_i) {
+      o.rt(angle);
+      switch (this.lastAdded.type) {
+        case 'rect':
+          this.r(this.lastAdded.width, this.lastAdded.height, o.x, o.y);
+          break;
+        case 'rects':
+          w -= angle;
+          this.rs(this.lastAdded.width, this.lastAdded.height, o.x, o.y, w);
+      }
+    }
+    return this;
+  };
+
+  Drawing.prototype.addMirrorX = function() {
+    return this.mx;
+  };
+
+  Drawing.getter('mx', function() {
+    switch (this.lastAdded.type) {
+      case 'rect':
+        this.r(this.lastAdded.width, this.lastAdded.height, -this.lastAdded.offsetX, this.lastAdded.offsetY);
+        break;
+      case 'rects':
+        this.rs(this.lastAdded.width, this.lastAdded.height, -this.lastAdded.offsetX, this.lastAdded.offsetY, -this.lastAdded.way);
+    }
+    return this;
+  });
+
+  Drawing.prototype.addMirrorX = function() {
+    return this.my;
+  };
+
+  Drawing.getter('my', function() {
+    switch (this.lastAdded.type) {
+      case 'rect':
+        this.r(this.lastAdded.width, this.lastAdded.height, this.lastAdded.offsetX, -this.lastAdded.offsetY);
+        break;
+      case 'rects':
+        this.rs(this.lastAdded.width, this.lastAdded.height, this.lastAdded.offsetX, -this.lastAdded.offsetY, -this.lastAdded.way);
+    }
+    return this;
+  });
 
   Drawing.prototype.setPos = function() {
     var args;
@@ -1325,7 +1402,7 @@ TextActor = (function(_super) {
       this.v.d(this.duration);
     }
     Display.drawText(this.text, this.p.x, this.p.y, this.xAlign, 0, this.color, this.scale);
-    if (this.t >= this.duration) {
+    if (this.t >= this.duration - 1) {
       return this.r;
     }
   };
@@ -1548,7 +1625,7 @@ ParticleActor = (function(_super) {
       return;
     }
     Display.fillRect(this.p.x, this.p.y, this.size, this.size, this.color);
-    if (this.t >= this.duration) {
+    if (this.t >= this.duration - 1) {
       return this.r;
     }
   };
@@ -1577,7 +1654,7 @@ Mouse = (function() {
   });
 
   Mouse.initialize = function() {
-    this.p = new Vector;
+    this.p = new Vector().n(.5);
     this.ip = this.ipd = this.wasPressing = this.im = this.wasMoving = false;
     this.pressedDisabledCount = 0;
     Display.e.addEventListener('mousedown', this.onMouseDown);

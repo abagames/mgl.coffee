@@ -418,6 +418,23 @@ window.update = ->
 
 * Finished!
 
+### Short abbreviated class/mehod names
+
+You can use short abbreviated class/method names. See [SPRINGING](./samples/spring.coffee) sample.
+
+### Capture a screenshot
+
+* Add `Config.captureArgs`.
+
+```coffee
+# args: scale, duration (sec), interval (sec)
+Config.captureArgs = [0.5, 3, 0.05]
+```
+
+* Open the html file with a browser.
+
+* Press 'c' key to capture a screenshot with an animated gif.
+
 License
 ----------
 Copyright &copy; 2014 ABA Games

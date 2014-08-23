@@ -420,7 +420,7 @@ window.update = ->
 
 ### Short abbreviated class/mehod names
 
-You can use short abbreviated class/method names. See [SPRINGING](./samples/spring.coffee) sample.
+You can use short abbreviated class/method names. See [SPRINGING](./samples/springing.coffee) sample.
 
 ### Capture a screenshot
 

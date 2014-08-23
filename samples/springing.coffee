@@ -100,7 +100,7 @@ class Spring extends A
 			G.e
 	spr: ->
 		Spring.bs.p
-		@v.y = -.033#-.05
+		@v.y = -.033
 		@sy = .5
 class Floor extends A
 	b: ->
@@ -108,7 +108,7 @@ class Floor extends A
 			.c C.g
 			.r .04
 	u: ->
-		@r if !@p.x < -.025
+		@r if @p.x < -.025
 class Bonus extends A
 	i: ->
 		Bonus.gs = @ns.v(4).d()

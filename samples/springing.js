@@ -182,7 +182,7 @@
     };
 
     Floor.prototype.u = function() {
-      if (!this.p.x < -.025) {
+      if (this.p.x < -.025) {
         return this.r;
       }
     };

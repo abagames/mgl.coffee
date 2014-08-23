@@ -93,7 +93,7 @@ class Shot extends Actor
 		#   upper-left (0, 0)----(1, 0) upper-right
 		#                   |    |
 		#   lower-left (0, 1)----(1, 1) lower-right
-		@remove() if !@pos.isIn
+		@remove() if !@pos.isIn()
 ```
 
 * Use `Fiber` to add the shot every 5 frames.

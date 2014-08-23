@@ -210,6 +210,8 @@ Game = (function() {
     }
     if (Config.isDebuggingMode) {
       this.beginGame();
+      this.lastFrameTime = new Date().getTime();
+      this.fps = this.fpsCount = 0;
     } else {
       this.initializeGame();
       this.beginTitle();
@@ -258,7 +260,7 @@ Game = (function() {
     if (time != null) {
       this.currentTime = time;
     } else {
-      this.currentTime = (new Date).getTime();
+      this.currentTime = new Date().getTime();
     }
     this.delta += (this.currentTime - this.prevTime) / this.INTERVAL;
     this.prevTime = this.currentTime;
@@ -293,7 +295,12 @@ Game = (function() {
     Game.postUpdate();
     Game.t++;
     if (!Game.ib) {
-      return Game.updateTitle();
+      Game.updateTitle();
+    }
+    if (Config.isDebuggingMode) {
+      Game.calcFps();
+      Display.drawText("FPS:" + Game.fps, 0, 0.97);
+      return Display.drawText("ACTOR#:" + Actor.number, 0.2, 0.97);
     }
   };
 
@@ -305,6 +312,18 @@ Game = (function() {
   Game.updateTitle = function() {
     if (Mouse.ipd) {
       return this.beginGame();
+    }
+  };
+
+  Game.calcFps = function() {
+    var currentTime, delta;
+    this.fpsCount++;
+    currentTime = new Date().getTime();
+    delta = currentTime - this.lastFrameTime;
+    if (delta >= 1000) {
+      this.fps = floor(this.fpsCount * 1000 / delta);
+      this.lastFrameTime = currentTime;
+      return this.fpsCount = 0;
     }
   };
 
@@ -419,7 +438,7 @@ Display = (function() {
   Display.endCapture = function() {
     var binaryGif, encoder, i, idx, _i, _ref;
     this.isCapturing = false;
-    encoder = new GIFEncoder();
+    encoder = new GIFEncoder;
     encoder.setRepeat(0);
     encoder.setDelay(this.captureInterval);
     encoder.start();
@@ -701,11 +720,21 @@ Actor = (function() {
   };
 
   Actor.update = function() {
-    var g, _i, _len, _ref;
-    _ref = this.groups;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      g = _ref[_i];
-      g.update();
+    var g, _i, _j, _len, _len1, _ref, _ref1;
+    if (Config.isDebuggingMode) {
+      Actor.number = 0;
+      _ref = this.groups;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        g = _ref[_i];
+        g.update();
+        Actor.number += g.s.length;
+      }
+    } else {
+      _ref1 = this.groups;
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        g = _ref1[_j];
+        g.update();
+      }
     }
   };
 
@@ -1927,7 +1956,7 @@ Sound = (function() {
   Sound.initialize = function() {
     var error;
     try {
-      this.c = new AudioContext();
+      this.c = new AudioContext;
       this.gn = Sound.c.createGain();
       this.gn.gain.value = Config.soundVolume;
       this.gn.connect(Sound.c.destination);

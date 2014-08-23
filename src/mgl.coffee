@@ -73,6 +73,8 @@ class Game
 		window.initialize?()
 		if Config.isDebuggingMode
 			@beginGame()
+			@lastFrameTime = new Date().getTime()
+			@fps = @fpsCount = 0
 		else
 			@initializeGame()
 			@beginTitle()
@@ -104,7 +106,7 @@ class Game
 		if time?
 			@currentTime = time
 		else
-			@currentTime = (new Date).getTime()
+			@currentTime = new Date().getTime()
 		@delta += (@currentTime - @prevTime) / @INTERVAL
 		@prevTime = @currentTime
 		return true if @delta >= 0.75
@@ -123,11 +125,23 @@ class Game
 		@postUpdate()
 		@t++
 		@updateTitle() if !@ib
+		if Config.isDebuggingMode
+			@calcFps()
+			Display.drawText "FPS:#{@fps}", 0, 0.97
+			Display.drawText "ACTOR#:#{Actor.number}", 0.2, 0.97
 	@postUpdate: ->
 		@delta = 0
 		requestAnimFrame @updateFrame
 	@updateTitle: ->
 		@beginGame() if Mouse.ipd
+	@calcFps: ->
+		@fpsCount++
+		currentTime = new Date().getTime()
+		delta = currentTime - @lastFrameTime
+		if delta >= 1000
+			@fps = floor @fpsCount * 1000 / delta
+			@lastFrameTime = currentTime
+			@fpsCount = 0
 requestAnimFrame =
 	window.requestAnimationFrame	   ||
 	window.webkitRequestAnimationFrame ||
@@ -190,7 +204,7 @@ class Display
 			(@captureCanvasIndex + 1).lr 0, @captureDuration
 	@endCapture: ->
 		@isCapturing = false
-		encoder = new GIFEncoder()
+		encoder = new GIFEncoder
 		encoder.setRepeat 0
 		encoder.setDelay @captureInterval
 		encoder.start()
@@ -300,7 +314,13 @@ class Actor
 		@groups = [] if !@groups?
 		g.clear() for g in @groups
 	@update: ->
-		g.update() for g in @groups
+		if Config.isDebuggingMode
+			Actor.number = 0
+			for g in @groups
+				g.update()
+				Actor.number += g.s.length
+		else
+			g.update() for g in @groups
 		return
 	@sortGroups: ->
 		@groups.sort (v1, v2) ->
@@ -886,7 +906,7 @@ class Sound
 		@scheduledTime = null
 		@
 	@generateParam: (seed, params, mixRatio = 0.5) ->
-		random = if seed != 0 then (new Random seed) else @random
+		random = if seed != 0 then new Random(seed) else @random
 		psl = params.length
 		i = random.ri 0, psl - 1
 		p = params[i].concat()
@@ -902,7 +922,7 @@ class Sound
 	# private functions
 	@initialize: ->
 		try
-			@c = new AudioContext()
+			@c = new AudioContext
 			@gn = Sound.c.createGain()
 			@gn.gain.value = Config.soundVolume
 			@gn.connect Sound.c.destination
@@ -962,7 +982,7 @@ class Sound
 	@generateSeParam: (type, seed) ->
 		@generateParam seed, @seParams[type], 0.75
 	@generateDrumPattern: (seed) ->
-		random = if seed != 0 then (new Random seed) else @random
+		random = if seed != 0 then new Random(seed) else @random
 		dpsl = @drumPatterns.length
 		i = random.ri 0, dpsl - 1
 		dp = @drumPatterns[i]

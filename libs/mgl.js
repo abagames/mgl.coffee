@@ -276,7 +276,7 @@ Game = (function() {
     if (Game.isPaused) {
       return;
     }
-    if (!Game.preUpdate(time)) {
+    if (!(Game.preUpdate(time))) {
       return;
     }
     Display.preUpdate();
@@ -694,6 +694,10 @@ Actor = (function() {
 
   Actor.setter('drawing', function(v) {
     return this.d = v;
+  });
+
+  Actor.getter('ir', function() {
+    return this.isRemoving;
   });
 
   Actor.prototype.i = function() {};
@@ -1642,7 +1646,11 @@ ParticleActor = (function(_super) {
   ParticleActor.prototype.update = function() {
     var i, p, pp, ww, _i, _ref;
     if (this.particle != null) {
+      this.r;
       pp = this.particle;
+      if (pp.number < 1) {
+        return;
+      }
       ww = pp.wayWidth / 2;
       for (i = _i = 1, _ref = pp.number; 1 <= _ref ? _i <= _ref : _i >= _ref; i = 1 <= _ref ? ++_i : --_i) {
         p = new ParticleActor;
@@ -1652,7 +1660,6 @@ ParticleActor = (function(_super) {
         p.size = pp.size;
         p.duration = pp.duration * (0.5.rr(1.5));
       }
-      this.r;
       return;
     }
     Display.fillRect(this.p.x, this.p.y, this.size, this.size, this.color);
@@ -1844,11 +1851,27 @@ Sound = (function() {
   };
 
   Sound.prototype.pr = function(param) {
+    this.param = param;
     if (!Sound.isEnabled) {
       return this;
     }
-    param[2] *= this.volume;
-    this.buffer = WebAudiox.getBufferFromJsfx(Sound.c, param);
+    this.param[2] *= this.volume;
+    this.buffer = WebAudiox.getBufferFromJsfx(Sound.c, this.param);
+    return this;
+  };
+
+  Sound.prototype.changeParam = function() {
+    var args;
+    args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    return this.cpr.apply(this, args);
+  };
+
+  Sound.prototype.cpr = function(index, ratio) {
+    if (!Sound.isEnabled) {
+      return this;
+    }
+    this.param[index] *= ratio;
+    this.buffer = WebAudiox.getBufferFromJsfx(Sound.c, this.param);
     return this;
   };
 
@@ -2299,7 +2322,7 @@ Vector = (function() {
   Vector.prototype.rt = function(way) {
     var px, w;
     if (way === 0) {
-      return;
+      return this;
     }
     w = way * PI / 180;
     px = this.x;

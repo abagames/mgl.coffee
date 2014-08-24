@@ -114,7 +114,7 @@ class Game
 		false
 	@updateFrame: (time) =>
 		return if @isPaused
-		return if not @preUpdate time
+		return if !(@preUpdate time)
 		Display.preUpdate()
 		Mouse.update()
 		window.update?()
@@ -300,6 +300,7 @@ class Actor
 	@setter 'ticks', (v) -> @t = v
 	@getter 'drawing', -> @d
 	@setter 'drawing', (v) -> @d = v
+	@getter 'ir', -> @isRemoving
 
 	# functions should be overrided
 	# initialize (called once in the game)
@@ -770,7 +771,9 @@ class ParticleActor extends Actor
 		@setDisplayPriority 0
 	update: ->
 		if @particle?
+			@r
 			pp = @particle
+			return if pp.number < 1
 			ww = pp.wayWidth / 2
 			for i in [1..pp.number]
 				p = new ParticleActor
@@ -780,7 +783,6 @@ class ParticleActor extends Actor
 				p.color = pp.color
 				p.size = pp.size
 				p.duration = pp.duration * (0.5.rr 1.5)
-			@r
 			return
 		Display.fillRect @p.x, @p.y, @size, @size, @color
 		@r if @t >= @duration - 1
@@ -874,10 +876,16 @@ class Sound
 	setVolume: (args...) -> @v args...
 	v: (@volume) -> @
 	setParam: (args...) -> @pr args...
-	pr: (param) ->
+	pr: (@param) ->
 		return @ if !Sound.isEnabled
-		param[2] *= @volume
-		@buffer = WebAudiox.getBufferFromJsfx Sound.c, param
+		@param[2] *= @volume
+		@buffer = WebAudiox.getBufferFromJsfx Sound.c, @param
+		@
+	changeParam: (args...) -> @cpr args...
+	cpr: (index, ratio) ->
+		return @ if !Sound.isEnabled
+		@param[index] *= ratio		
+		@buffer = WebAudiox.getBufferFromJsfx Sound.c, @param
 		@
 	setDrum: (args...) -> @d args...
 	d: (seed = 0) ->
@@ -1116,7 +1124,7 @@ class Vector
 		@
 	rotate: (args...) -> @rt args...
 	rt: (way) ->
-		return if way == 0
+		return @ if way == 0
 		w = way * PI / 180
 		px = @x
 		@x = @x * (cos w) - @y * (sin w)

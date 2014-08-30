@@ -764,7 +764,7 @@ Actor = (function() {
     this.v = new Vector;
     this.w = 0;
     this.s = 0;
-    this.t = -1;
+    this.t = 0;
     this.d = new Drawing;
     this.fibers = [];
     this.isRemoving = false;
@@ -787,7 +787,7 @@ Actor = (function() {
     this.b.apply(this, args);
   }
 
-  Actor.prototype.preUpdate = function() {
+  Actor.prototype.postUpdate = function() {
     var f, _i, _len, _ref;
     this.p.a(this.v);
     this.p.aw(this.w, this.s);
@@ -824,12 +824,12 @@ ActorGroup = (function() {
       }
       a = this.s[i];
       if (!a.isRemoving) {
-        a.preUpdate();
         a.u();
       }
       if (a.isRemoving) {
         this.s.splice(i, 1);
       } else {
+        a.postUpdate();
         i++;
       }
     }
@@ -914,6 +914,9 @@ Drawing = (function() {
       tw = width;
       width = height;
       height = tw;
+    }
+    if (width < 0.01) {
+      return this;
     }
     n = floor(height / width);
     o = -width * (n - 1) / 2;
@@ -1090,6 +1093,15 @@ Drawing = (function() {
     }
     return isCollided;
   };
+
+  Drawing.prototype.clear = function() {
+    return this.cl;
+  };
+
+  Drawing.getter('cl', function() {
+    this.s = [];
+    return this;
+  });
 
   function Drawing() {
     this.s = [];
@@ -1433,7 +1445,6 @@ TextActor = (function(_super) {
 
   TextActor.prototype.update = function() {
     if (this.t === 0) {
-      this.p.s(this.v);
       this.v.d(this.duration);
     }
     Display.drawText(this.text, this.p.x, this.p.y, this.xAlign, 0, this.color, this.scale);

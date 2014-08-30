@@ -334,7 +334,7 @@ class Actor
 		@v = new Vector
 		@w = 0
 		@s = 0
-		@t = -1
+		@t = 0
 		@d = new Drawing
 		@fibers = []
 		@isRemoving = false
@@ -351,7 +351,7 @@ class Actor
 			@i()
 		@group.s.push @
 		@b args...
-	preUpdate: ->
+	postUpdate: ->
 		@p.a @v
 		@p.aw @w, @s
 		f.update() for f in @fibers
@@ -368,12 +368,11 @@ class ActorGroup
 		while true
 			break if i >= @s.length
 			a = @s[i]
-			if !a.isRemoving
-				a.preUpdate()
-				a.u()
+			a.u() if !a.isRemoving
 			if a.isRemoving
 				@s.splice i, 1
 			else
+				a.postUpdate()
 				i++
 		return
 
@@ -411,6 +410,7 @@ class Drawing
 			tw = width
 			width = height
 			height = tw
+		return @ if width < 0.01
 		n = floor height / width
 		o = -width * (n - 1) / 2
 		vo = width
@@ -494,6 +494,10 @@ class Drawing
 				isCollided = true
 				handler? cca
 		isCollided
+	clear: -> @cl
+	@getter 'cl', ->
+		@s = []
+		@
 
 	# private functions
 	constructor: ->
@@ -661,9 +665,7 @@ class TextActor extends Actor
 		@color = Color.white
 		@scale = 1
 	update: ->
-		if @t == 0
-			@p.s @v
-			@v.d @duration
+		@v.d @duration if @t == 0
 		Display.drawText @text, @p.x, @p.y, @xAlign, 0, @color, @scale
 		@r if @t >= @duration - 1
 class Letter

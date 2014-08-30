@@ -152,7 +152,7 @@
       this.vsy *= .95;
       this.sy += this.vsy;
       this.d.sc(1, this.sy);
-      if (this.p.y > 1) {
+      if (this.p.y > 1 && this.v.y > 0) {
         Spring.ds.pn;
         this.np.w(0, 90).s(.05).sz(.05).n(20);
         this.r;

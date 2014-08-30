@@ -89,7 +89,7 @@ class Spring extends A
 		@vsy *= .95
 		@sy += @vsy
 		@d.sc 1, @sy
-		if @p.y > 1
+		if @p.y > 1 && @v.y > 0
 			Spring.ds.pn
 			@np
 				.w 0, 90

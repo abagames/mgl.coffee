@@ -385,7 +385,6 @@ class Drawing
 	r: (width, height = 0, ox = 0, oy = 0) ->
 		@lastAdded =
 			type: 'rect'
-			color: @color
 			width: width
 			height: height
 			offsetX: ox
@@ -398,7 +397,6 @@ class Drawing
 	rs: (width, height, ox = 0, oy = 0, way = 0) ->
 		@lastAdded =
 			type: 'rects'
-			color: @color
 			width: width
 			height: height
 			offsetX: ox
@@ -534,7 +532,7 @@ class DrawingRect
 		Display.fillRect @currentPos.x, @currentPos.y,
 			@currentSize.x, @currentSize.y, @color
 	isCollided: (r) ->
-		return false if !@hasCollision
+		return false if !@hasCollision || !r.hasCollision
 		(abs @currentPos.x - r.currentPos.x) <
 			(@currentSize.x + r.currentSize.x) / 2 &&
 			(abs @currentPos.y - r.currentPos.y) <
@@ -650,7 +648,9 @@ class Text
 		else
 			Text.shownTexts.push @a.text
 		@
-		
+	remove: -> @r
+	@getter 'r', -> @a.r
+
 	# private functions
 	constructor: (text) ->
 		@a = new TextActor
@@ -720,8 +720,7 @@ class Letter
 			tx -= floor text.length * lw / 2
 		else if xAlign == 1
 			tx -= floor text.length * lw
-		if yAlign == 0
-			ty -= size * 3
+		ty -= floor size * 3.5 if yAlign == 0
 		for c in text
 			li = @charToIndex[c.charCodeAt 0]
 			if li >= 0
@@ -761,7 +760,7 @@ class Particle
 	constructor: ->
 		@a = new ParticleActor
 		@a.particle = @
-		@count = 1
+		@number = 1
 		@way = 0
 		@wayWidth = 360
 		@speed = 0.01
@@ -1187,8 +1186,8 @@ Number::lr = (min = 0, max = 1) ->
 		v % w + min
 	else
 		w + v % w + min
-Number::normalizeWay = (args...) -> @.nw args...
-Number::nw = ->
+Number::normalizeWay = -> @.nw
+Number.getter 'nw', ->
 	(@ % 360).lr -180, 180
 Number::randomRange = (args...) -> @.rr args...
 Number::rr = (to = 1) ->

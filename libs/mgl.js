@@ -869,7 +869,6 @@ Drawing = (function() {
     }
     this.lastAdded = {
       type: 'rect',
-      color: this.color,
       width: width,
       height: height,
       offsetX: ox,
@@ -901,7 +900,6 @@ Drawing = (function() {
     }
     this.lastAdded = {
       type: 'rects',
-      color: this.color,
       width: width,
       height: height,
       offsetX: ox,
@@ -1168,7 +1166,7 @@ DrawingRect = (function() {
   };
 
   DrawingRect.prototype.isCollided = function(r) {
-    if (!this.hasCollision) {
+    if (!this.hasCollision || !r.hasCollision) {
       return false;
     }
     return (abs(this.currentPos.x - r.currentPos.x)) < (this.currentSize.x + r.currentSize.x) / 2 && (abs(this.currentPos.y - r.currentPos.y)) < (this.currentSize.y + r.currentSize.y) / 2;
@@ -1414,6 +1412,14 @@ Text = (function() {
     return this;
   });
 
+  Text.prototype.remove = function() {
+    return this.r;
+  };
+
+  Text.getter('r', function() {
+    return this.a.r;
+  });
+
   function Text(text) {
     this.a = new TextActor;
     this.a.text = text;
@@ -1510,7 +1516,7 @@ Letter = (function() {
       tx -= floor(text.length * lw);
     }
     if (yAlign === 0) {
-      ty -= size * 3;
+      ty -= floor(size * 3.5);
     }
     for (_i = 0, _len = text.length; _i < _len; _i++) {
       c = text[_i];
@@ -1630,7 +1636,7 @@ Particle = (function() {
   function Particle() {
     this.a = new ParticleActor;
     this.a.particle = this;
-    this.count = 1;
+    this.number = 1;
     this.way = 0;
     this.wayWidth = 360;
     this.speed = 0.01;
@@ -2504,14 +2510,12 @@ Number.prototype.lr = function(min, max) {
 };
 
 Number.prototype.normalizeWay = function() {
-  var args;
-  args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-  return this.nw.apply(this, args);
+  return this.nw;
 };
 
-Number.prototype.nw = function() {
+Number.getter('nw', function() {
   return (this % 360).lr(-180, 180);
-};
+});
 
 Number.prototype.randomRange = function() {
   var args;

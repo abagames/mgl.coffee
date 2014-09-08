@@ -201,7 +201,7 @@ class Bullet extends Actor
 		@pos.setValue p
 		ship = (Actor.s Ship)[0]
 		# remove when the firing position is too close to the ship
-		if !ship? || !@pos.ii || (@pos.distanceTo ship.pos) < 0.3
+		if !ship? || !@pos.isIn() || (@pos.distanceTo ship.pos) < 0.3
 			@remove()
 			return
 		# if an actor has to rotate, use 'addRects' function that

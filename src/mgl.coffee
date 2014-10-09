@@ -172,12 +172,14 @@ class Display
 				color = Color.white, scale = 1) ->
 		Letter.draw text, x, y, alignX, alignY, color, scale
 	@fillRect: (x, y, width, height, color = Color.white) ->
+		return if color.rv < 0
 		@c.fillStyle = color.toString()
 		@c.fillRect floor((x - width / 2) * @size.x),
 			floor((y - height / 2)* @size.y),
 			floor(width * @size.x),
 			floor(height * @size.y)
 	@fillRectDirect: (x, y, width, height, color = Color.white) ->
+		return if color.rv < 0
 		@c.fillStyle = color.toString()
 		@c.fillRect x, y, width, height
 	@beginCapture: (scale = 1, durationSec = 3, intervalSec = 0.05) ->
@@ -591,6 +593,8 @@ class Color
 	@cyan: new Color 0, 1, 1
 	@w: new Color 1, 1, 1
 	@white: new Color 1, 1, 1
+	@t: new Color -1, -1, -1
+	@transparent: new Color -1, -1, -1
 
 	# private functions
 	toString: ->

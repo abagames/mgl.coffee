@@ -387,6 +387,9 @@ Display = (function() {
     if (color == null) {
       color = Color.white;
     }
+    if (color.rv < 0) {
+      return;
+    }
     this.c.fillStyle = color.toString();
     return this.c.fillRect(floor((x - width / 2) * this.size.x), floor((y - height / 2) * this.size.y), floor(width * this.size.x), floor(height * this.size.y));
   };
@@ -394,6 +397,9 @@ Display = (function() {
   Display.fillRectDirect = function(x, y, width, height, color) {
     if (color == null) {
       color = Color.white;
+    }
+    if (color.rv < 0) {
+      return;
     }
     this.c.fillStyle = color.toString();
     return this.c.fillRect(x, y, width, height);
@@ -1289,6 +1295,10 @@ Color = (function() {
   Color.w = new Color(1, 1, 1);
 
   Color.white = new Color(1, 1, 1);
+
+  Color.t = new Color(-1, -1, -1);
+
+  Color.transparent = new Color(-1, -1, -1);
 
   Color.prototype.toString = function() {
     var b, g, r, v0, v1;

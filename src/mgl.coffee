@@ -120,7 +120,15 @@ class Game
 		window.update?()
 		Actor.update()
 		Sound.update()
-		f.update() for f in @fibers
+		i = 0
+		while true
+			break if i >= @fibers.length
+			f = @fibers[i]
+			f.update() if !f.isRemoving
+			if f.isRemoving
+				@fibers.splice i, 1
+			else
+				i++
 		Display.drawText "#{@sc}", 1, 0, 1
 		@postUpdate()
 		@t++
@@ -565,11 +573,15 @@ class Fiber
 	@getter 'n', ->
 		@funcIndex = 0 if ++@funcIndex >= @funcs.length
 		@
+	remove: -> @r
+	@getter 'r', -> @isRemoving = true
+	@getter 'ir', -> @isRemoving
 
 	# private functions
 	constructor: ->
 		@funcs = []
 		@funcIndex = 0
+		@isRemoving = false
 	update: ->
 		@funcs[@funcIndex].call @			
 

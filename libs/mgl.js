@@ -272,7 +272,7 @@ Game = (function() {
   };
 
   Game.updateFrame = function(time) {
-    var f, _i, _len, _ref;
+    var f, i;
     if (Game.isPaused) {
       return;
     }
@@ -286,10 +286,20 @@ Game = (function() {
     }
     Actor.update();
     Sound.update();
-    _ref = Game.fibers;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      f = _ref[_i];
-      f.update();
+    i = 0;
+    while (true) {
+      if (i >= Game.fibers.length) {
+        break;
+      }
+      f = Game.fibers[i];
+      if (!f.isRemoving) {
+        f.update();
+      }
+      if (f.isRemoving) {
+        Game.fibers.splice(i, 1);
+      } else {
+        i++;
+      }
     }
     Display.drawText("" + Game.sc, 1, 0, 1);
     Game.postUpdate();
@@ -1244,9 +1254,22 @@ Fiber = (function() {
     return this;
   });
 
+  Fiber.prototype.remove = function() {
+    return this.r;
+  };
+
+  Fiber.getter('r', function() {
+    return this.isRemoving = true;
+  });
+
+  Fiber.getter('ir', function() {
+    return this.isRemoving;
+  });
+
   function Fiber() {
     this.funcs = [];
     this.funcIndex = 0;
+    this.isRemoving = false;
   }
 
   Fiber.prototype.update = function() {

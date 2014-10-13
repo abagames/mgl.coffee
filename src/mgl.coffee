@@ -259,6 +259,22 @@ class Actor
 				a.p.y += oy
 				a.p.x = a.p.x.lr minX, maxX if minX < maxX
 				a.p.y = a.p.y.lr minY, maxY if minY < maxY
+	@clear: (args...) -> @cl args...
+	@cl: (targetClasses = null) ->
+		@groups = [] if !@groups?
+		if targetClasses == null
+			g.clear() for g in @groups
+			return
+		tcs =
+			if (targetClasses instanceof Array)
+				targetClasses
+			else
+				[targetClasses]
+		for tc in tcs
+			className = ('' + tc)
+				.replace /^\s*function\s*([^\(]*)[\S\s]+$/im, '$1'
+			for g in @groups
+				g.clear() if g.name == className
 	remove: -> @r
 	@getter 'r', -> @isRemoving = true
 	setDisplayPriority: (args...) -> @dp args...
@@ -321,9 +337,6 @@ class Actor
 	u: ->
 
 	# private functions
-	@clear: ->
-		@groups = [] if !@groups?
-		g.clear() for g in @groups
 	@update: ->
 		if Config.isDebuggingMode
 			Actor.number = 0

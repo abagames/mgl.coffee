@@ -552,6 +552,51 @@ Actor = (function() {
     return _results;
   };
 
+  Actor.clear = function() {
+    var args;
+    args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    return this.cl.apply(this, args);
+  };
+
+  Actor.cl = function(targetClasses) {
+    var className, g, tc, tcs, _i, _j, _len, _len1, _ref, _results;
+    if (targetClasses == null) {
+      targetClasses = null;
+    }
+    if (this.groups == null) {
+      this.groups = [];
+    }
+    if (targetClasses === null) {
+      _ref = this.groups;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        g = _ref[_i];
+        g.clear();
+      }
+      return;
+    }
+    tcs = targetClasses instanceof Array ? targetClasses : [targetClasses];
+    _results = [];
+    for (_j = 0, _len1 = tcs.length; _j < _len1; _j++) {
+      tc = tcs[_j];
+      className = ('' + tc).replace(/^\s*function\s*([^\(]*)[\S\s]+$/im, '$1');
+      _results.push((function() {
+        var _k, _len2, _ref1, _results1;
+        _ref1 = this.groups;
+        _results1 = [];
+        for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+          g = _ref1[_k];
+          if (g.name === className) {
+            _results1.push(g.clear());
+          } else {
+            _results1.push(void 0);
+          }
+        }
+        return _results1;
+      }).call(this));
+    }
+    return _results;
+  };
+
   Actor.prototype.remove = function() {
     return this.r;
   };
@@ -724,20 +769,6 @@ Actor = (function() {
   };
 
   Actor.prototype.u = function() {};
-
-  Actor.clear = function() {
-    var g, _i, _len, _ref, _results;
-    if (this.groups == null) {
-      this.groups = [];
-    }
-    _ref = this.groups;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      g = _ref[_i];
-      _results.push(g.clear());
-    }
-    return _results;
-  };
 
   Actor.update = function() {
     var g, _i, _j, _len, _len1, _ref, _ref1;

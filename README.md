@@ -418,7 +418,7 @@ window.update = ->
 
 * Finished!
 
-### Short abbreviated class/mehod names
+### Short abbreviated class/method names
 
 You can use short abbreviated class/method names. See [SPRINGING](./samples/springing.coffee) sample.
 

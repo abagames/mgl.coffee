@@ -858,6 +858,7 @@ class Mouse
 	@onTouchStart: (e) =>
 		@ip = true
 		@onTouchMove e
+		Sound.playDummy()
 		G.onfocus()
 	@onTouchEnd: (e) =>
 		@ip = false		
@@ -960,7 +961,8 @@ class Sound
 	# private functions
 	@initialize: ->
 		try
-			@c = new AudioContext
+			audioContext = window.AudioContext || window.webkitAudioContext
+			@c = new audioContext
 			@gn = Sound.c.createGain()
 			@gn.gain.value = Config.soundVolume
 			@gn.connect Sound.c.destination
@@ -974,6 +976,7 @@ class Sound
 		@initDrumParams()
 		@initDrumPatterns()
 		@random = new Random
+		@isDummyPlayed = false
 	@clear: ->
 		@s = []
 	@reset: ->
@@ -1040,6 +1043,15 @@ class Sound
 		for d in dpa
 			gdp += if d then '1' else '0'
 		gdp
+	@playDummy: ->
+		return if !@isEnabled || @isDummyPlayed
+		@isDummyPlayed = true
+		s = @c.createBufferSource()
+		s.buffer = WebAudiox.getBufferFromJsfx @c, @drumParams[0]
+		s.start = s.start || s.noteOn
+		s.start 0
+		s.onended = -> s.disconnect()
+		s.connect @gn
 	reset: ->
 		@isPlayingOnce = @isPlayingLoop = null
 	update: (ct, tt) ->
@@ -1074,9 +1086,10 @@ class Sound
 	playLater: (delay) ->
 		s = Sound.c.createBufferSource()
 		s.buffer = @buffer
-		s.connect Sound.gn
 		s.start = s.start || s.noteOn
 		s.start delay
+		s.onended = -> s.disconnect()
+		s.connect Sound.gn
 
 # random number generator
 class Random
